@@ -1,0 +1,154 @@
+openapi: 3.1.0
+  info:
+    title: Api
+    version: 0.1.0
+    description: Claude API Gateway - OpenAI-compatible API key management
+  servers:
+    - url: /api
+  tags:
+    - name: health
+    - name: apikeys
+  paths:
+    /healthz:
+      get:
+        operationId: healthCheck
+        tags: [health]
+        summary: Health check
+        responses:
+          "200":
+            description: Healthy
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/HealthStatus"
+    /apikeys:
+      get:
+        operationId: listApiKeys
+        tags: [apikeys]
+        summary: List all API keys
+        responses:
+          "200":
+            description: List of API keys
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ApiKey"
+      post:
+        operationId: createApiKey
+        tags: [apikeys]
+        summary: Create a new API key
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiKeyInput"
+        responses:
+          "201":
+            description: Created (fullKey shown once)
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiKeyCreated"
+    /apikeys/{id}:
+      delete:
+        operationId: deleteApiKey
+        tags: [apikeys]
+        summary: Delete an API key
+        parameters:
+          - name: id
+            in: path
+            required: true
+            schema:
+              type: integer
+        responses:
+          "200":
+            description: Deleted
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/DeleteResult"
+    /apikeys/stats:
+      get:
+        operationId: getApiKeyStats
+        tags: [apikeys]
+        summary: Get usage statistics
+        responses:
+          "200":
+            description: Stats
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiKeyStats"
+  components:
+    schemas:
+      HealthStatus:
+        type: object
+        properties:
+          status:
+            type: string
+        required: [status]
+      ApiKey:
+        type: object
+        required: [id, name, keyPrefix, createdAt, requestCount, isActive]
+        properties:
+          id:
+            type: integer
+          name:
+            type: string
+          keyPrefix:
+            type: string
+          createdAt:
+            type: string
+          requestCount:
+            type: integer
+          isActive:
+            type: boolean
+          lastUsedAt:
+            type: ["string", "null"]
+      ApiKeyCreated:
+        type: object
+        required: [id, name, keyPrefix, createdAt, requestCount, isActive, fullKey]
+        properties:
+          id:
+            type: integer
+          name:
+            type: string
+          keyPrefix:
+            type: string
+          createdAt:
+            type: string
+          requestCount:
+            type: integer
+          isActive:
+            type: boolean
+          lastUsedAt:
+            type: ["string", "null"]
+          fullKey:
+            type: string
+      ApiKeyInput:
+        type: object
+        required: [name]
+        properties:
+          name:
+            type: string
+            minLength: 1
+      DeleteResult:
+        type: object
+        required: [success]
+        properties:
+          success:
+            type: boolean
+      ApiKeyStats:
+        type: object
+        required: [totalKeys, activeKeys, totalRequests]
+        properties:
+          totalKeys:
+            type: integer
+          activeKeys:
+            type: integer
+          totalRequests:
+            type: integer
+  
